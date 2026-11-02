@@ -2,12 +2,13 @@
 
 A Udacity image-classification project using PyTorch and torchvision transfer learning to classify 102 flower categories. Originally completed in 2024 and updated in November 2026.
 
-**Status:** Trained and evaluated on the full Udacity split. Pretrained AlexNet achieved 64.10% first-choice and 86.57% top-five accuracy on 819 held-out test images. See [measured results](results/README.md) for the protocol and limitations.
+**Status:** Validation-selected ResNet18 achieved **90.96% first-choice** and **97.44% top-five accuracy** on 819 held-out flower images. Eleven regression tests passed. See [measured results](results/README.md) for the comparison and limitations.
 
 ## What the project demonstrates
 
 - Image augmentation, resizing, cropping, RGB conversion, and ImageNet normalization
-- Transfer learning with pretrained AlexNet or VGG16
+- Transfer learning with pretrained ResNet18, AlexNet, or VGG16
+- Validation-only model selection with cached features and exact-duplicate filtering
 - Training a replacement classifier while freezing the feature extractor
 - CPU execution, optional CUDA, validation, and top-k flower predictions
 - Checkpoints containing model weights and basic metadata, loaded with `weights_only=True`
@@ -50,14 +51,23 @@ Image provenance: [Oxford 102 Category Flower Dataset](https://www.robots.ox.ac.
 
 ## Train and predict
 
+For the current ResNet18 workflow, compare the three predefined classifier heads using validation data and save the selected model:
+
 ```bash
-python train.py --dir flowers --arch alexnet --hidden_units 512 --epochs 5 --seed 42 --save_dir checkpoint.pth
-python predict.py --image flowers/test/1/image_06743.jpg --checkpoint checkpoint.pth --cat_names cat_to_name.json --top_k 5
+python tune.py --data_dir flowers --checkpoint checkpoint-resnet18.pth --report validation-search.json --seed 42
+python predict.py --image flowers/test/1/image_06743.jpg --checkpoint checkpoint-resnet18.pth --cat_names cat_to_name.json --top_k 5
+python evaluate.py --checkpoint checkpoint-resnet18.pth --data_dir flowers --cat_names cat_to_name.json --output evaluation.json
 ```
 
-Replace the example image path with a file that exists locally. `--arch vgg16` is also supported. CPU is the default; add `--gpu` to request CUDA when available, or use `--gpu false` explicitly. The first training run downloads ImageNet weights from PyTorch. `--no_pretrained` disables that download and uses random initialization, intended for offline workflow checks.
+Replace the example image path with an existing local file. `tune.py` uses CPU, downloads official PyTorch ResNet18 ImageNet weights, and reads only the training and validation folders. It excludes validation images that exactly duplicate training images without changing the files on disk. Test evaluation is a separate command run after model selection.
 
-Prediction rebuilds the network from checkpoint metadata and does not download pretrained weights. Legacy checkpoints that serialize model objects are unsupported; retrain with these scripts instead of enabling unsafe pickle loading.
+The original coursework-style AlexNet/VGG16 workflow remains available:
+
+```bash
+python train.py --dir flowers --arch alexnet --hidden_units 512 --epochs 5 --seed 42 --save_dir checkpoint-alexnet.pth
+```
+
+CPU is the default. `train.py` and `predict.py` accept `--gpu` to request CUDA when available, or `--gpu false`. In `train.py`, `--no_pretrained` uses random initialization for offline software checks. Prediction rebuilds the network from saved weights and metadata without downloading weights. Unsafe legacy model-object checkpoints require retraining.
 
 ## Verification completed November 2, 2026
 
@@ -65,21 +75,11 @@ Prediction rebuilds the network from checkpoint metadata and does not download p
 python -m unittest discover -s tests -v
 ```
 
-Eight regression tests passed. Checks cover GPU argument parsing, training seeds, RGB/grayscale/alpha preprocessing, CPU validation, honoring epochs, checkpoint round trips for AlexNet and VGG16, top-k output, legacy-checkpoint rejection, class-mapping validation, and evaluation metrics against known predictions. Tests use random weights and make no network requests.
+Eleven regression tests passed. Checks cover argument parsing, seeds, image preprocessing, CPU validation, epoch handling, AlexNet/VGG16/ResNet18 checkpoint round trips, top-k predictions, unsupported legacy checkpoints, category mapping, evaluation metrics against known predictions, exact-duplicate filtering, and reproduction of the selected classifier head's validation score. Tests make no network requests.
 
-A small real-image smoke run first checked the full CLI workflow. The subsequent full-data run trained pretrained AlexNet on all 6,552 training images for five epochs and evaluated the final model on all 819 test images.
-
-| Held-out test metric | Result |
-| --- | ---: |
-| First-choice accuracy | 64.10% (525/819) |
-| Top-five accuracy | 86.57% (709/819) |
-
-```bash
-python evaluate.py --checkpoint checkpoint.pth --data_dir flowers --cat_names cat_to_name.json --output evaluation.json
-```
-
-See [results and example predictions](results/README.md) and [machine-readable metrics](results/evaluation.json). The test set has no exact image duplicates against training or validation. One train/validation duplicate is documented in the data-integrity report. Results apply to this run and split; CUDA, Windows, and arbitrary-photo performance have not been validated.
+Full-data training and test evaluation are complete for the AlexNet baseline and the validation-selected ResNet18 model. See [measured results and example predictions](results/README.md) for the current accuracy, comparison, data-quality caveats, and reproduction commands.
 
 ## Project notes
 
 The original exported HTML notebook report was omitted from the executable project because it loads external JavaScript libraries. The original source remains in Git history. See [SECURITY_REVIEW.md](SECURITY_REVIEW.md) for the repaired issues and remaining limits.
+

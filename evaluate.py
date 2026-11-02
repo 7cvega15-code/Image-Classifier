@@ -17,7 +17,7 @@ def evaluate(checkpoint, data_dir, category_names, batch_size=32):
     model.eval()
     # Matches train.py's validation/test preprocessing.
     transform = transforms.Compose([
-        transforms.Resize(255),
+        transforms.Resize(getattr(model, 'preprocess_resize', 255)),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),

@@ -66,6 +66,14 @@ def load_checkpoint(checkpoint):
     # Restricted loading: checkpoints contain tensors and basic metadata only.
     # Never retry a rejected legacy pickle with weights_only=False.
     checkpoint = torch.load(checkpoint, map_location='cpu', weights_only=True)
+    if checkpoint.get('format_version') == 3:
+        if checkpoint.get('arch') != 'resnet18':
+            raise ValueError('Unsupported architecture for checkpoint format 3')
+        from resnet_classifier import build_resnet18
+        model = build_resnet18(checkpoint['hidden_units'], checkpoint['dropout'], checkpoint['num_classes'])
+        model.load_state_dict(checkpoint['state_dict'])
+        model.class_to_idx = checkpoint['class_to_idx']
+        return model
     if checkpoint.get('format_version') != 2:
         raise ValueError('Unsupported legacy checkpoint. Retrain with this version; do not enable unsafe pickle loading.')
     arch = checkpoint['arch']
@@ -134,8 +142,13 @@ def predict(image_path, model, device, cat_to_name_file, topk):
     model.eval()
    
     # Process image
-    img = process_image(image_path)
-    image_tensor = torch.from_numpy(img).type(torch.FloatTensor)
+    if getattr(model, 'architecture', None) == 'resnet18':
+        from resnet_classifier import image_transform
+        with Image.open(image_path) as source:
+            image_tensor = image_transform()(source.convert('RGB'))
+    else:
+        img = process_image(image_path)
+        image_tensor = torch.from_numpy(img).type(torch.FloatTensor)
    
     # Add batch of size 1 to image to only process 1 pic
     model_input = image_tensor.unsqueeze(0)
