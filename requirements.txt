@@ -1,6 +1,4 @@
-torch
-torchvision
-numpy
-Pillow
-matplotlib
-pandas
+torch==2.15.0
+torchvision==0.29.2
+numpy==2.5.4
+Pillow==13.0.0

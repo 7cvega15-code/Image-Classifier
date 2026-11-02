@@ -1,22 +1,26 @@
-# Static security and source review
+# Review and restoration notes
 
-Reviewed the archive contents without executing the Python scripts, opening the HTML report in a browser, installing dependencies, or loading a model checkpoint.
+The original archive was inspected as text before execution. No obvious credential access, shell execution, or data exfiltration was found in the two Python scripts. The HTML export referenced external JavaScript libraries and was omitted from the executable project.
 
-## Security observations
+## Repairs in November 2026
 
-- No obvious shell execution, dynamic `eval`/`exec`, credential access, network requests, or data exfiltration was found in `train.py` or `predict.py`.
-- `predict.py` uses `torch.load(checkpoint, ...)`. Treat checkpoint files as executable/untrusted input because pickle-based loading can execute code. The archive contained no checkpoint.
-- The exported HTML report references `require.js`, jQuery, and MathJax from external CDNs; it was left out of this repository package.
+- Training now honors the requested epoch count.
+- Validation uses the selected device instead of forcing CUDA.
+- GPU arguments accept an explicit false value; CPU is the default.
+- Both supported architectures locate their first linear classifier layer correctly, including AlexNet's leading dropout.
+- Classifier dropout layers have unique names.
+- Saved metadata records the selected architecture and hidden size.
+- Optimizer state is obtained by calling `state_dict()`.
+- Checkpoints contain the full model state dictionary and basic metadata rather than serialized model objects.
+- Prediction uses restricted `torch.load(..., weights_only=True)` and never retries with unsafe pickle loading. Legacy checkpoints require retraining.
+- Image preprocessing handles grayscale and alpha-channel images by converting to RGB and returns float32 data.
+- The supported top-k range is checked.
+- Unused dependencies were removed; requirements record the versions used for CPU verification.
 
-This is a static review of the supplied files, not a guarantee that third-party dependencies or future checkpoints are safe. Keep endpoint protection enabled and obtain dependencies from trusted sources.
+## Validation and limits
 
-## Functional issues to address before use
+Five regression tests passed on Linux/Python 3.12/CPU, including model save/reload checks for AlexNet and VGG16. A separate small real-image CLI run completed training, validation, testing, checkpoint saving, and prediction using pretrained AlexNet.
 
-- `train.py` hard-codes `epochs = 5`, so the `--epochs` argument is ignored.
-- `validation()` hard-codes CUDA for the model and tensors, which fails on CPU-only systems and ignores the selected device.
-- `save_checkpoint()` hard-codes the architecture to `vgg16`, even if AlexNet was selected.
-- `save_checkpoint()` stores `optimizer.state_dict` as a method reference rather than calling `optimizer.state_dict()`.
-- `predict.py` parses `--gpu` as `bool`; command-line text values such as `False` are still truthy in Python.
-- The archive lacks the flower dataset, `cat_to_name.json`, and checkpoint required to use the scripts.
+These checks do not establish full-dataset accuracy, CUDA behavior, or Windows compatibility. The tiny training subset was intended to verify execution only. Restricted checkpoint loading reduces pickle-related risk but is not a guarantee that arbitrary files are harmless; use checkpoints from a trusted source.
 
-No fixes were applied to the original source files in this preparation pass.
+The original source and archive were preserved. Endpoint-protection settings were not changed.

@@ -1,20 +1,19 @@
-# Imports here
-
-import matplotlib.pyplot as plt
-import torch
-from torch import nn
-from torch import optim
-import torch.nn.functional as F
-import torchvision
-from torchvision import datasets, transforms, models
-import torch.optim as optim
-import numpy as np
-from collections import OrderedDict
-from PIL import Image
-from torch.autograd import Variable
 import argparse
-import os
-import sys
+from collections import OrderedDict
+
+import torch
+from torch import nn, optim
+from torchvision import datasets, transforms, models
+
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('true', '1', 'yes'):
+        return True
+    if value.lower() in ('false', '0', 'no'):
+        return False
+    raise argparse.ArgumentTypeError('Use true or false.')
 
 def main():
    # args = get_input_args()
@@ -51,7 +50,7 @@ def main():
     train_loader, valid_loader, test_loader, train_data, valid_data, test_data = load_data(train_dir, test_dir, valid_dir)
 
     #load model 
-    model = load_pretrained_network(args.arch)
+    model = load_pretrained_network(args.arch, pretrained=not args.no_pretrained)
     model = classifier(model, args.hidden_units)
                      
     #define loss function
@@ -71,8 +70,9 @@ def main():
 def get_input_args(): 
     print('get args')
     parser = argparse.ArgumentParser()                              
-    parser.add_argument('--gpu', type=bool, default='True', help='True: gpu, False: cpu')
-    parser.add_argument('--arch', type=str, default='vgg16', help='model arch')
+    parser.add_argument('--gpu', type=parse_bool, nargs='?', const=True, default=False, help='Use CUDA if available; defaults to CPU')
+    parser.add_argument('--arch', choices=['vgg16', 'alexnet'], default='vgg16', help='model architecture')
+    parser.add_argument('--no_pretrained', action='store_true', help='Use random initialization for offline workflow checks, not pretrained transfer learning')
     parser.add_argument('--dir', type=str, default='flowers', help='flower images directory path')
     parser.add_argument('--save_dir', type=str, default='checkpoint.pth', help='save model to checkpoint file')
     parser.add_argument('--epochs', type=int, default=5, help='total epochs for the training')
@@ -114,43 +114,35 @@ def load_data(train_dir, test_dir, valid_dir):
     
     return train_loader, valid_loader, test_loader, train_data, valid_data, test_data          
               
-print('Data loaded')
+
               
 
                   
 # Load pre-trained network , choose from at least two different architectures available from torchvision
-def load_pretrained_network(arch):
-    print('load vgg16 or alexnet model')
-    if arch == "vgg16":
-         model = models.vgg16(pretrained=True)
-         print('Pretrained Network being used is vgg16')
-    elif arch == "alexnet":
-         model = models.alexnet(pretrained=True)
-         print('Pretrained Network being used is alexnet ')
+def load_pretrained_network(arch, pretrained=True):
+    if arch == 'vgg16':
+        return models.vgg16(weights=models.VGG16_Weights.DEFAULT if pretrained else None)
+    if arch == 'alexnet':
+        return models.alexnet(weights=models.AlexNet_Weights.DEFAULT if pretrained else None)
+    raise ValueError('Supported architectures: vgg16, alexnet')
 
-    else:
-        print('Invalid : vgg16 will be used')      
-        model = models.vgg16(pretrained=True)
-        print('Network loaded')    
-    return model
-                  
  #Define a new untrained feed-forward network as a classifier , using ReLU activations and dropout  
 #output layer must match flower categories =102
 
 def classifier(model, hidden_units) : 
 #check that the layers are the same as original
 #use input feature for trained network used 
-    input = model.classifier[0].in_features
+    input = next(layer.in_features for layer in model.classifier if isinstance(layer, nn.Linear))
     if hidden_units == None: 
         hidden_units = 4000
     
     classifier = nn.Sequential(OrderedDict([
                          ('fc1', nn.Linear(input, hidden_units)),
                          ('relu', nn.ReLU()),
-                         ('dropout', nn.Dropout(p=0.5)),                            
+                         ('dropout1', nn.Dropout(p=0.5)),                            
                          ('fc2', nn.Linear(hidden_units, 500)),
                          ('relu2', nn.ReLU()),
-                         ('dropout', nn.Dropout(p=0.5)), 
+                         ('dropout2', nn.Dropout(p=0.5)), 
                          ('fc3', nn.Linear(500, 102)),
                          ('output', nn.LogSoftmax(dim=1))]))
 
@@ -164,14 +156,15 @@ def classifier(model, hidden_units) :
 
 
 
+@torch.no_grad()
 def validation(model, valid_loader, device, criterion):
     print('start validation')
     validation_loss = 0 
     validation_accuracy = 0 
-    model.to('cuda') 
+    model.to(device) 
     model.eval()
     for images, labels in valid_loader:
-        images, labels = images.to('cuda'), labels.to('cuda')
+        images, labels = images.to(device), labels.to(device)
         output = model.forward(images)
         validation_loss += criterion(output, labels).item()
 
@@ -186,7 +179,8 @@ def validation(model, valid_loader, device, criterion):
 def train_model(epochs, train_loader, valid_loader, device, model, optimizer, criterion):
     print('start train_model')
     #passes through the data set
-    epochs = 5
+    if epochs < 1:
+        raise ValueError("epochs must be at least 1")
     steps = 0
     print_every = 30
     running_loss = 0
@@ -249,16 +243,17 @@ def test_model(model, test_loader, device, optimizer, criterion):
 
 # Save the checkpoint 
 def save_checkpoint(epochs, model, train_data, save_dir, arch, optimizer):
-     model.class_to_idx = train_data.class_to_idx
-     checkpoint = {'arch': 'vgg16',
-                  'classifier': model.classifier,
-                  'class_to_idx': model.class_to_idx,
-                  'state_dict': model.classifier.state_dict(),
-                  'epochs': epochs,
-                  'optimizer_state': optimizer.state_dict
-                  }
-     torch.save(checkpoint, save_dir)
-     print('end save checkpoint')
+    checkpoint = {
+        'format_version': 2,
+        'arch': arch,
+        'hidden_units': model.classifier.fc1.out_features,
+        'class_to_idx': dict(train_data.class_to_idx),
+        'state_dict': model.state_dict(),
+        'epochs': epochs,
+        'optimizer_state': optimizer.state_dict(),
+    }
+    torch.save(checkpoint, save_dir)
+    print('Checkpoint saved:', save_dir)
 
 #call main fcn to run the script
 if __name__ == '__main__':

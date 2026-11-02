@@ -1,23 +1,22 @@
-# Imports here
+import argparse
+import json
+from collections import OrderedDict
 
-import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
 import torch
 from torch import nn
-from torch import optim
-import torch.nn.functional as F
-import torchvision
-from torchvision import datasets, transforms, models
-import torch.optim as optim
-import numpy as np
-from collections import OrderedDict
-from PIL import Image
-from torch.autograd import Variable
-import argparse
-import os
-import sys
-import pandas as pd
-import json
+from torchvision import models
 
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ('true', '1', 'yes'):
+        return True
+    if value.lower() in ('false', '0', 'no'):
+        return False
+    raise argparse.ArgumentTypeError('Use true or false.')
 
 #start predict.py
 def main():
@@ -38,14 +37,14 @@ def main():
     print('call load_checkpoint')              
     model = load_checkpoint(args.checkpoint)
     #modify n_image name?? – check if it runs
-    n_image = process_image(args.image)
+    # Image preprocessing is performed once inside predict().
    
     topk_probability, topk_classes, topk_flowers= predict(args.image, model, device, args.cat_names, args.top_k)
 
   
     print('Flower: ', topk_flowers)
     print('Probablities: ', topk_probability)
-    print('Top 5 classes : ', topk_classes)
+    print('Top classes: ', topk_classes)
     print('Predict complete')
     
     
@@ -54,7 +53,7 @@ def get_input_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--checkpoint', type=str, default='checkpoint.pth', help='Load saved model')    
     parser.add_argument('--image', type=str, default='flowers/test/1/image_06764.jpg', help='Process images')   
-    parser.add_argument('--gpu', type=bool, default='True', help='True: gpu, False: cpu')  
+    parser.add_argument('--gpu', type=parse_bool, nargs='?', const=True, default=False, help='Use CUDA if available; defaults to CPU')  
     parser.add_argument('--top_k', type=int, default=5, help='top 5')
     parser.add_argument('--cat_names', type=str, default='cat_to_name.json', help='Mapping of category  names')
   
@@ -64,23 +63,37 @@ def get_input_args():
 
 # load the checkpoint and rebuild the model 
 def load_checkpoint(checkpoint):
-
-    checkpoint= torch.load(checkpoint, map_location=lambda storage, loc: storage)
-    model = getattr(models, checkpoint['arch'])(pretrained=True)     
-    model.classifier = checkpoint['classifier']
+    # Restricted loading: checkpoints contain tensors and basic metadata only.
+    # Never retry a rejected legacy pickle with weights_only=False.
+    checkpoint = torch.load(checkpoint, map_location='cpu', weights_only=True)
+    if checkpoint.get('format_version') != 2:
+        raise ValueError('Unsupported legacy checkpoint. Retrain with this version; do not enable unsafe pickle loading.')
+    arch = checkpoint['arch']
+    if arch not in ('vgg16', 'alexnet'):
+        raise ValueError('Unsupported architecture in checkpoint')
+    model = getattr(models, arch)(weights=None)
+    inputs = next(layer.in_features for layer in model.classifier if isinstance(layer, nn.Linear))
+    hidden = checkpoint['hidden_units']
+    model.classifier = nn.Sequential(OrderedDict([
+        ('fc1', nn.Linear(inputs, hidden)),
+        ('relu', nn.ReLU()),
+        ('dropout1', nn.Dropout(p=0.5)),
+        ('fc2', nn.Linear(hidden, 500)),
+        ('relu2', nn.ReLU()),
+        ('dropout2', nn.Dropout(p=0.5)),
+        ('fc3', nn.Linear(500, 102)),
+        ('output', nn.LogSoftmax(dim=1)),
+    ]))
+    model.load_state_dict(checkpoint['state_dict'])
     model.class_to_idx = checkpoint['class_to_idx']
-    #load the actual classifier state dict that we added -  include: .classifier - Shinto 3/14
-    model.classifier.load_state_dict(checkpoint['state_dict'])
-    #don’t need to load the optimizer as we wont continue training for this project       
-    #model.optimizer.load_state_dict(checkpoint['optimizer_state'])
-    
     return model
-    print('Checkpoint loaded')
+
 # TODO: Process a PIL image for use in a PyTorch model
 def process_image(image):
     print('start process image')
     #open the image
-    im = Image.open(image)
+    with Image.open(image) as source:
+        im = source.convert('RGB')
 
     #resize and crop 
     current_width, current_height = im.size
@@ -110,11 +123,13 @@ def process_image(image):
     #change dimension of the color channel from third to first
     np_image = np_image.transpose((2,0,1))
 
-    return np_image
+    return np_image.astype(np.float32)
 
 def predict(image_path, model, device, cat_to_name_file, topk):
    
     print('start predict function')
+    if not 1 <= topk <= len(model.class_to_idx):
+        raise ValueError('top_k must be between 1 and the number of known categories')
     model.to(device) 
     model.eval()
    

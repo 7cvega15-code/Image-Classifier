@@ -15,3 +15,8 @@ cat_to_name.json
 .DS_Store
 .vscode/
 .idea/
+
+# Downloaded dataset archives and alternate extraction folders
+*.tar.gz
+*.zip
+flower_data/
