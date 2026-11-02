@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Project data and generated models
+flowers/
+cat_to_name.json
+*.pth
+*.pt
+*.ckpt
+
+# Local tooling
+.DS_Store
+.vscode/
+.idea/
