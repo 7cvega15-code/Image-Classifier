@@ -1,6 +1,6 @@
 # Flower Image Classifier
 
-A recovered Udacity image-classification project using PyTorch and torchvision transfer learning to classify 102 flower categories. The 2024 source was restored and repaired in November 2026.
+A Udacity image-classification project using PyTorch and torchvision transfer learning to classify 102 flower categories. Originally completed in 2024 and updated in November 2026.
 
 **Status:** Trained and evaluated on the full Udacity split. Pretrained AlexNet achieved 64.10% first-choice and 86.57% top-five accuracy on 819 held-out test images. See [measured results](results/README.md) for the protocol and limitations.
 
@@ -80,6 +80,6 @@ python evaluate.py --checkpoint checkpoint.pth --data_dir flowers --cat_names ca
 
 See [results and example predictions](results/README.md) and [machine-readable metrics](results/evaluation.json). The test set has no exact image duplicates against training or validation. One train/validation duplicate is documented in the data-integrity report. Results apply to this run and split; CUDA, Windows, and arbitrary-photo performance have not been validated.
 
-## Restoration notes
+## Project notes
 
 The original exported HTML notebook report was omitted from the executable project because it loads external JavaScript libraries. The original source remains in Git history. See [SECURITY_REVIEW.md](SECURITY_REVIEW.md) for the repaired issues and remaining limits.
