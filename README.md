@@ -2,7 +2,7 @@
 
 A recovered Udacity image-classification project using PyTorch and torchvision transfer learning to classify 102 flower categories. The 2024 source was restored and repaired in November 2026.
 
-**Status:** CPU workflow checks pass. Training, validation, checkpoint saving/loading, and prediction have been exercised on a small sample of real flower images. A full training run and held-out accuracy benchmark are still pending; this repository does not claim a production-ready or high-accuracy model.
+**Status:** Trained and evaluated on the full Udacity split. Pretrained AlexNet achieved 64.10% first-choice and 86.57% top-five accuracy on 819 held-out test images. See [measured results](results/README.md) for the protocol and limitations.
 
 ## What the project demonstrates
 
@@ -51,7 +51,7 @@ Image provenance: [Oxford 102 Category Flower Dataset](https://www.robots.ox.ac.
 ## Train and predict
 
 ```bash
-python train.py --dir flowers --arch alexnet --hidden_units 512 --epochs 5 --save_dir checkpoint.pth
+python train.py --dir flowers --arch alexnet --hidden_units 512 --epochs 5 --seed 42 --save_dir checkpoint.pth
 python predict.py --image flowers/test/1/image_06743.jpg --checkpoint checkpoint.pth --cat_names cat_to_name.json --top_k 5
 ```
 
@@ -65,11 +65,20 @@ Prediction rebuilds the network from checkpoint metadata and does not download p
 python -m unittest discover -s tests -v
 ```
 
-Five regression tests passed, including subcases for both AlexNet and VGG16. They cover GPU argument parsing, RGB/grayscale/alpha image preprocessing, CPU validation, honoring the epoch argument, checkpoint metadata and optimizer serialization, matching predictions before/after reload, valid top-k output, and rejection of an unsupported legacy checkpoint. These tests use random weights and make no network requests.
+Eight regression tests passed. Checks cover GPU argument parsing, training seeds, RGB/grayscale/alpha preprocessing, CPU validation, honoring epochs, checkpoint round trips for AlexNet and VGG16, top-k output, legacy-checkpoint rejection, class-mapping validation, and evaluation metrics against known predictions. Tests use random weights and make no network requests.
 
-A separate CLI smoke run used pretrained AlexNet, one epoch, 32 hidden units, and one image from each of the 102 categories in each split (306 real images total). Training, CPU validation/testing, checkpoint saving, and a separate prediction process completed successfully. Both scripts' `--help` commands also passed.
+A small real-image smoke run first checked the full CLI workflow. The subsequent full-data run trained pretrained AlexNet on all 6,552 training images for five epochs and evaluated the final model on all 819 test images.
 
-**The small CLI run tests the software workflow, not classification quality.** It is insufficient training for useful predictions. Full-dataset training, held-out accuracy, and example predictions from a properly trained model remain future work.
+| Held-out test metric | Result |
+| --- | ---: |
+| First-choice accuracy | 64.10% (525/819) |
+| Top-five accuracy | 86.57% (709/819) |
+
+```bash
+python evaluate.py --checkpoint checkpoint.pth --data_dir flowers --cat_names cat_to_name.json --output evaluation.json
+```
+
+See [results and example predictions](results/README.md) and [machine-readable metrics](results/evaluation.json). The test set has no exact image duplicates against training or validation. One train/validation duplicate is documented in the data-integrity report. Results apply to this run and split; CUDA, Windows, and arbitrary-photo performance have not been validated.
 
 ## Restoration notes
 

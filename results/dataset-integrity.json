@@ -1,0 +1,17 @@
+{
+  "counts": {
+    "train": 6552,
+    "valid": 818,
+    "test": 819
+  },
+  "cross_split_exact_duplicates": [
+    [
+      "train/31/image_08077.jpg",
+      "valid/31/image_08067.jpg"
+    ]
+  ],
+  "archive_sha256": "19f2cbbcd6cbbe977ff5baa19143e3a9132a1fceb2a2f61c8558573f49fbb1b3",
+  "source": "https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz",
+  "image_verification": "All 8,189 JPEGs passed Pillow verification in the preceding restoration checks.",
+  "test_set_exact_duplicates_against_train_or_valid": 0
+}

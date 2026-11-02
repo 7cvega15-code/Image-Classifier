@@ -27,6 +27,10 @@ class ClassifierTests(unittest.TestCase):
                     with patch.object(sys, 'argv', ['script'] + args):
                         self.assertEqual(module.get_input_args().gpu, expected)
 
+    def test_training_seed_argument(self):
+        with patch.object(sys, 'argv', ['train.py', '--seed', '7']):
+            self.assertEqual(train.get_input_args().seed, 7)
+
     def test_preprocess_rgb_grayscale_and_alpha(self):
         with tempfile.TemporaryDirectory() as folder:
             for mode in ('RGB', 'L', 'RGBA'):

@@ -1,4 +1,5 @@
 import argparse
+import random
 from collections import OrderedDict
 
 import torch
@@ -27,6 +28,8 @@ def main():
      #   print('CPU')
                     
     args = get_input_args()
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
     is_gpu = args.gpu
     use_cuda = torch.cuda.is_available()
     device = torch.device("cpu")
@@ -76,6 +79,7 @@ def get_input_args():
     parser.add_argument('--dir', type=str, default='flowers', help='flower images directory path')
     parser.add_argument('--save_dir', type=str, default='checkpoint.pth', help='save model to checkpoint file')
     parser.add_argument('--epochs', type=int, default=5, help='total epochs for the training')
+    parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducible training on the same environment')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for the training')
     parser.add_argument('--hidden_units', type=int, default=4000, help='hidden units for classifier')
   

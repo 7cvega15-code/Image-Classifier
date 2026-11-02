@@ -1,0 +1,81 @@
+Full-data run: AlexNet, 5 epochs, hidden=512, seed=42
+get args
+Device is set to cpu
+Downloading: "https://download.pytorch.org/models/alexnet-owt-7be5be79.pth" to /root/.cache/torch/hub/checkpoints/alexnet-owt-7be5be79.pth
+classifier defined
+start train_model
+start validation
+Epoch: 1/5..  Training Loss: 4.828..  Validation Loss: 4.192..  Validation Accuracy: 0.120
+start validation
+Epoch: 1/5..  Training Loss: 4.327..  Validation Loss: 3.778..  Validation Accuracy: 0.221
+start validation
+Epoch: 1/5..  Training Loss: 3.997..  Validation Loss: 3.365..  Validation Accuracy: 0.272
+start validation
+Epoch: 1/5..  Training Loss: 3.766..  Validation Loss: 3.047..  Validation Accuracy: 0.288
+start validation
+Epoch: 1/5..  Training Loss: 3.616..  Validation Loss: 2.721..  Validation Accuracy: 0.337
+start validation
+Epoch: 1/5..  Training Loss: 3.448..  Validation Loss: 2.522..  Validation Accuracy: 0.409
+start validation
+Epoch: 2/5..  Training Loss: 3.356..  Validation Loss: 2.421..  Validation Accuracy: 0.399
+start validation
+Epoch: 2/5..  Training Loss: 3.218..  Validation Loss: 2.216..  Validation Accuracy: 0.444
+start validation
+Epoch: 2/5..  Training Loss: 3.153..  Validation Loss: 2.227..  Validation Accuracy: 0.477
+start validation
+Epoch: 2/5..  Training Loss: 3.073..  Validation Loss: 1.944..  Validation Accuracy: 0.512
+start validation
+Epoch: 2/5..  Training Loss: 2.916..  Validation Loss: 1.895..  Validation Accuracy: 0.501
+start validation
+Epoch: 2/5..  Training Loss: 2.955..  Validation Loss: 1.865..  Validation Accuracy: 0.507
+start validation
+Epoch: 2/5..  Training Loss: 2.945..  Validation Loss: 1.849..  Validation Accuracy: 0.516
+start validation
+Epoch: 3/5..  Training Loss: 2.914..  Validation Loss: 1.807..  Validation Accuracy: 0.547
+start validation
+Epoch: 3/5..  Training Loss: 2.853..  Validation Loss: 1.838..  Validation Accuracy: 0.525
+start validation
+Epoch: 3/5..  Training Loss: 3.074..  Validation Loss: 1.830..  Validation Accuracy: 0.567
+start validation
+Epoch: 3/5..  Training Loss: 2.804..  Validation Loss: 1.724..  Validation Accuracy: 0.559
+start validation
+Epoch: 3/5..  Training Loss: 2.756..  Validation Loss: 1.709..  Validation Accuracy: 0.536
+start validation
+Epoch: 3/5..  Training Loss: 2.699..  Validation Loss: 1.726..  Validation Accuracy: 0.532
+start validation
+Epoch: 3/5..  Training Loss: 2.863..  Validation Loss: 1.696..  Validation Accuracy: 0.560
+start validation
+Epoch: 4/5..  Training Loss: 2.756..  Validation Loss: 1.602..  Validation Accuracy: 0.584
+start validation
+Epoch: 4/5..  Training Loss: 2.774..  Validation Loss: 1.607..  Validation Accuracy: 0.604
+start validation
+Epoch: 4/5..  Training Loss: 2.714..  Validation Loss: 1.588..  Validation Accuracy: 0.585
+start validation
+Epoch: 4/5..  Training Loss: 2.671..  Validation Loss: 1.587..  Validation Accuracy: 0.602
+start validation
+Epoch: 4/5..  Training Loss: 2.730..  Validation Loss: 1.636..  Validation Accuracy: 0.585
+start validation
+Epoch: 4/5..  Training Loss: 2.659..  Validation Loss: 1.520..  Validation Accuracy: 0.611
+start validation
+Epoch: 4/5..  Training Loss: 2.657..  Validation Loss: 1.526..  Validation Accuracy: 0.600
+start validation
+Epoch: 5/5..  Training Loss: 2.571..  Validation Loss: 1.566..  Validation Accuracy: 0.593
+start validation
+Epoch: 5/5..  Training Loss: 2.509..  Validation Loss: 1.467..  Validation Accuracy: 0.610
+start validation
+Epoch: 5/5..  Training Loss: 2.536..  Validation Loss: 1.501..  Validation Accuracy: 0.604
+start validation
+Epoch: 5/5..  Training Loss: 2.541..  Validation Loss: 1.432..  Validation Accuracy: 0.641
+start validation
+Epoch: 5/5..  Training Loss: 2.694..  Validation Loss: 1.431..  Validation Accuracy: 0.630
+start validation
+Epoch: 5/5..  Training Loss: 2.489..  Validation Loss: 1.431..  Validation Accuracy: 0.630
+start validation
+Epoch: 5/5..  Training Loss: 2.591..  Validation Loss: 1.407..  Validation Accuracy: 0.665
+Training complete
+start validation
+start test_model
+Accuracy of the network on the test images: 64 %
+Checkpoint saved: <workspace>/flower-alexnet-full.pth
+training done
+Training elapsed seconds: 403.29
