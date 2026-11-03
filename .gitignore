@@ -20,3 +20,7 @@ cat_to_name.json
 *.tar.gz
 *.zip
 flower_data/
+
+# Downloaded experiment inputs and generated releases
+.experiment-data/
+output/
