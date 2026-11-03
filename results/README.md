@@ -1,8 +1,24 @@
 # Flower classifier: measured results
 
-## Current model: ResNet18
+## Public model release: November 3, 2026
 
-The current model achieved **90.96% first-choice accuracy** and **97.44% top-five accuracy** on all 819 images in the supplied test split, across 102 flower categories.
+[Download the trained model](https://github.com/7cvega15-code/Image-Classifier/releases/download/model-v2-41674454513/flower-classifier-resnet18.pth) · [Release and raw metrics](https://github.com/7cvega15-code/Image-Classifier/releases/tag/model-v2-41674454513) · [Successful training/test workflow](https://github.com/7cvega15-code/Image-Classifier/actions/runs/41674454513)
+
+| Measure | Previous run | Published model |
+| --- | ---: | ---: |
+| First-choice test accuracy | 90.96% (745/819) | **91.09% (746/819)** |
+| Top-five test accuracy | 97.44% (798/819) | **98.29% (805/819)** |
+
+The first-choice improvement is **one additional correctly classified image**, or 0.12 percentage points. Top-five accuracy improved by seven images, or 0.85 percentage points. These are descriptive differences on the same coursework test split, not evidence of a statistically established generalization improvement.
+
+Four predefined configurations compared the previous head with horizontal-flip training views, lower dropout, a wider head, and longer training limits. Candidate and epoch selection used the cleaned validation set only. The selected validation accuracy was 94.37%. Test evaluation followed selection; earlier test results were already known.
+
+All fourteen regression tests, a real-image CLI prediction command, and release-file checksum checks passed on a clean GitHub CPU runner. The public prerelease contains the trained checkpoint, evaluation.json, validation-search.json, and SHA256SUMS. See [published-model.md](published-model.md) for the release record. The historical results below are preserved.
+
+
+## November 2 model: ResNet18
+
+The November 2 model achieved **90.96% first-choice accuracy** and **97.44% top-five accuracy** on all 819 images in the supplied test split, across 102 flower categories.
 
 | Model | First-choice test accuracy | Top-five test accuracy |
 | --- | ---: | ---: |

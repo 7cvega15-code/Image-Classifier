@@ -1,0 +1,44 @@
+{
+  "release": "https://github.com/7cvega15-code/Image-Classifier/releases/tag/model-v2-41674454513",
+  "tag": "model-v2-41674454513",
+  "prerelease": true,
+  "source_commit": "d485e85abcc79a10af9c37b5987c96612be2ed0c",
+  "workflow": "https://github.com/7cvega15-code/Image-Classifier/actions/runs/41674454513",
+  "tests_passed": 14,
+  "images": 819,
+  "top1_correct": 746,
+  "top1_accuracy": 0.9108669108669109,
+  "top5_correct": 805,
+  "top5_accuracy": 0.9829059829059829,
+  "previous_top1_correct": 745,
+  "previous_top5_correct": 798,
+  "validation_accuracy_percent_reported": 94.37,
+  "validation_accuracy_precision": "Reported to two decimal places in the release notes",
+  "assets": [
+    {
+      "name": "evaluation.json",
+      "size": 11104,
+      "state": "uploaded",
+      "url": "https://github.com/7cvega15-code/Image-Classifier/releases/download/model-v2-41674454513/evaluation.json"
+    },
+    {
+      "name": "flower-classifier-resnet18.pth",
+      "size": 47308141,
+      "state": "uploaded",
+      "url": "https://github.com/7cvega15-code/Image-Classifier/releases/download/model-v2-41674454513/flower-classifier-resnet18.pth"
+    },
+    {
+      "name": "SHA256SUMS",
+      "size": 268,
+      "state": "uploaded",
+      "url": "https://github.com/7cvega15-code/Image-Classifier/releases/download/model-v2-41674454513/SHA256SUMS"
+    },
+    {
+      "name": "validation-search.json",
+      "size": 31304,
+      "state": "uploaded",
+      "url": "https://github.com/7cvega15-code/Image-Classifier/releases/download/model-v2-41674454513/validation-search.json"
+    }
+  ],
+  "limitations": "One seed and an already-used coursework test split. First-choice change is one image; statistical generalization improvement is not established."
+}
