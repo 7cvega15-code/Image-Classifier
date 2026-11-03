@@ -1,0 +1,50 @@
+name: Train and publish a validation-selected model
+
+on:
+  push:
+    branches: [model-release-20261103]
+    paths:
+      - experiments/improve.py
+      - tests/test_experiment.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flower-model-release
+  cancel-in-progress: false
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install CPU dependencies
+        run: |
+          python -m pip install torch==2.15.0 torchvision==0.29.2 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r requirements.txt
+      - name: Run regression tests
+        run: python -m unittest discover -s tests -v
+      - name: Train using validation-only selection and evaluate once
+        run: python -u experiments/improve.py --output output --threads 2
+      - name: Verify release files and publish measured results
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cd output
+          sha256sum --check SHA256SUMS
+          gh release create "model-v2-${GITHUB_RUN_ID}" flower-classifier-resnet18.pth evaluation.json validation-search.json SHA256SUMS --target "${GITHUB_SHA}" --title "Validation-selected ResNet18 model" --notes-file release-notes.md --prerelease
